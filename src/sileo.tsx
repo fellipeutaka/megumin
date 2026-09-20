@@ -1,6 +1,11 @@
+import {
+	Toast,
+	type ToastRootToastObject,
+} from "@base-ui/react/toast";
 import { motion } from "motion/react";
 import {
 	type CSSProperties,
+	type ComponentPropsWithRef,
 	type MouseEventHandler,
 	memo,
 	type ReactNode,
@@ -13,8 +18,11 @@ import {
 	useState,
 } from "react";
 import {
+	AUTO_COLLAPSE_DELAY,
+	AUTO_EXPAND_DELAY,
 	BLUR_RATIO,
 	DEFAULT_ROUNDNESS,
+	DEFAULT_TOAST_DURATION,
 	HEADER_EXIT_MS,
 	HEIGHT,
 	MIN_EXPAND_RATIO,
@@ -32,42 +40,39 @@ import {
 	X,
 } from "./icons";
 import "./styles.css";
-import type { SileoButton, SileoState, SileoStyles } from "./types";
+import type { SileoState, SileoToastData } from "./types";
 
 type State = SileoState;
 
+const SILEO_STATES = [
+	"success",
+	"loading",
+	"error",
+	"warning",
+	"info",
+	"action",
+] as const;
+
+const isSileoState = (value: string | undefined): value is SileoState =>
+	SILEO_STATES.includes(value as SileoState);
+
 interface View {
-	title?: string;
-	description?: ReactNode | string;
+	title?: ReactNode;
+	description?: ReactNode;
 	state: State;
 	icon?: ReactNode | null;
-	styles?: SileoStyles;
-	button?: SileoButton;
+	actionProps?: ComponentPropsWithRef<"button">;
 	fill: string;
 }
 
+type SileoRootProps = Record<string, any>;
+
 interface SileoProps {
-	id: string;
-	fill?: string;
-	state?: State;
-	title?: string;
-	description?: ReactNode | string;
-	position?: "left" | "center" | "right";
-	expand?: "top" | "bottom";
-	className?: string;
-	icon?: ReactNode | null;
-	styles?: SileoStyles;
-	button?: SileoButton;
-	roundness?: number;
-	exiting?: boolean;
-	autoExpandDelayMs?: number;
-	autoCollapseDelayMs?: number;
+	toast: ToastRootToastObject<SileoToastData>;
+	rootProps: SileoRootProps;
 	canExpand?: boolean;
-	interruptKey?: string;
-	refreshKey?: string;
-	onMouseEnter?: MouseEventHandler<HTMLButtonElement>;
-	onMouseLeave?: MouseEventHandler<HTMLButtonElement>;
-	onDismiss?: () => void;
+	onMouseEnter?: MouseEventHandler<HTMLDivElement>;
+	onMouseLeave?: MouseEventHandler<HTMLDivElement>;
 }
 
 /* ---------------------------------- Icons --------------------------------- */
@@ -115,31 +120,43 @@ const GooeyDefs = memo(function GooeyDefs({
 /* ------------------------------- Component -------------------------------- */
 
 export const Sileo = memo(function Sileo({
-	id,
-	fill = "#FFFFFF",
-	state = "success",
-	title = state,
-	description,
-	position = "left",
-	expand = "bottom",
-	className,
-	icon,
-	styles,
-	button,
-	roundness,
-	exiting = false,
-	autoExpandDelayMs,
-	autoCollapseDelayMs,
+	toast,
+	rootProps,
 	canExpand,
-	interruptKey,
-	refreshKey,
 	onMouseEnter,
 	onMouseLeave,
-	onDismiss,
 }: SileoProps) {
+	const data = toast.data ?? {};
+	const state = isSileoState(toast.type) ? toast.type : "success";
+	const title = toast.title ?? state;
+	const description = toast.description;
+	const actionProps = toast.actionProps;
+	const fill = data.fill ?? "#FFFFFF";
+	const roundness = data.roundness;
+	const position = "right" as const;
+	const expand = "bottom" as const;
+	const exiting = toast.transitionStatus === "ending";
+	const refreshKey = toast.updateKey;
+	const duration = toast.timeout ?? DEFAULT_TOAST_DURATION;
+	const autoExpandDelayMs =
+		duration > 0 && state !== "loading"
+			? Math.min(duration, AUTO_EXPAND_DELAY)
+			: undefined;
+	const autoCollapseDelayMs =
+		duration > 0 && state !== "loading"
+			? Math.min(duration, AUTO_COLLAPSE_DELAY)
+			: undefined;
+
 	const next: View = useMemo(
-		() => ({ title, description, state, icon, styles, button, fill }),
-		[title, description, state, icon, styles, button, fill],
+		() => ({
+			title,
+			description,
+			state,
+			icon: data.icon,
+			actionProps,
+			fill,
+		}),
+		[title, description, state, data.icon, actionProps, fill],
 	);
 
 	const [view, setView] = useState<View>(next);
@@ -148,15 +165,13 @@ export const Sileo = memo(function Sileo({
 	const [ready, setReady] = useState(false);
 	const [pillWidth, setPillWidth] = useState(0);
 	const [contentHeight, setContentHeight] = useState(0);
-	const hasDesc = Boolean(view.description) || Boolean(view.button);
+	const hasDesc = Boolean(view.description) || Boolean(view.actionProps?.children);
 	const isLoading = view.state === "loading";
 	const open = hasDesc && isExpanded && !isLoading;
-	const allowExpand = isLoading
-		? false
-		: (canExpand ?? (!interruptKey || interruptKey === id));
+	const allowExpand = isLoading ? false : (canExpand ?? true);
 
-	const headerKey = `${view.state}-${view.title}`;
-	const filterId = `sileo-gooey-${id}`;
+	const headerKey = `${view.state}-${String(view.title)}`;
+	const filterId = `sileo-gooey-${toast.id}`;
 	const resolvedRoundness = Math.max(0, roundness ?? DEFAULT_ROUNDNESS);
 	const blur = resolvedRoundness * BLUR_RATIO;
 
@@ -167,7 +182,7 @@ export const Sileo = memo(function Sileo({
 	const autoCollapseRef = useRef<number | null>(null);
 	const swapTimerRef = useRef<number | null>(null);
 	const lastRefreshKeyRef = useRef(refreshKey);
-	const pendingRef = useRef<{ key?: string; payload: View } | null>(null);
+	const pendingRef = useRef<{ key?: number; payload: View } | null>(null);
 	const [headerLayer, setHeaderLayer] = useState<{
 		current: { key: string; view: View };
 		prev: { key: string; view: View } | null;
@@ -459,25 +474,28 @@ export const Sileo = memo(function Sileo({
 
 	/* -------------------------------- Handlers -------------------------------- */
 
-	const handleEnter: MouseEventHandler<HTMLButtonElement> = useCallback(
+	const handleEnter: MouseEventHandler<HTMLDivElement> = useCallback(
 		(e) => {
+			rootProps.onMouseEnter?.(e);
 			onMouseEnter?.(e);
 			if (hasDesc) setIsExpanded(true);
 		},
-		[hasDesc, onMouseEnter],
+		[hasDesc, onMouseEnter, rootProps.onMouseEnter],
 	);
 
-	const handleLeave: MouseEventHandler<HTMLButtonElement> = useCallback(
+	const handleLeave: MouseEventHandler<HTMLDivElement> = useCallback(
 		(e) => {
+			rootProps.onMouseLeave?.(e);
 			onMouseLeave?.(e);
 			setIsExpanded(false);
 		},
-		[onMouseLeave],
+		[onMouseLeave, rootProps.onMouseLeave],
 	);
 
-	const handleTransitionEnd: TransitionEventHandler<HTMLButtonElement> =
+	const handleTransitionEnd: TransitionEventHandler<HTMLDivElement> =
 		useCallback(
 			(e) => {
+				rootProps.onTransitionEnd?.(e);
 				if (e.propertyName !== "height" && e.propertyName !== "transform")
 					return;
 				if (open) return;
@@ -491,94 +509,24 @@ export const Sileo = memo(function Sileo({
 				setApplied(pending.key);
 				pendingRef.current = null;
 			},
-			[open],
+			[open, rootProps.onTransitionEnd],
 		);
-
-	/* -------------------------------- Swipe ----------------------------------- */
-
-	const SWIPE_DISMISS = 30;
-	const SWIPE_MAX = 20;
-	const buttonRef = useRef<HTMLButtonElement>(null);
-	const pointerStartRef = useRef<number | null>(null);
-	const onDismissRef = useRef(onDismiss);
-	onDismissRef.current = onDismiss;
-
-	const swipeHandlersRef = useRef<{
-		onMove: (e: PointerEvent) => void;
-		onUp: (e: PointerEvent) => void;
-	} | null>(null);
-
-	if (!swipeHandlersRef.current) {
-		const handlers = {
-			onMove: (e: PointerEvent) => {
-				const el = buttonRef.current;
-				if (pointerStartRef.current === null || !el) return;
-				const dy = e.clientY - pointerStartRef.current;
-				const sign = dy > 0 ? 1 : -1;
-				const clamped = Math.min(Math.abs(dy), SWIPE_MAX) * sign;
-				el.style.transform = `translateY(${clamped}px)`;
-			},
-			onUp: (e: PointerEvent) => {
-				const el = buttonRef.current;
-				if (pointerStartRef.current === null || !el) return;
-				const dy = e.clientY - pointerStartRef.current;
-				pointerStartRef.current = null;
-				el.style.transform = "";
-				el.removeEventListener("pointermove", handlers.onMove);
-				el.removeEventListener("pointerup", handlers.onUp);
-				if (Math.abs(dy) > SWIPE_DISMISS) {
-					onDismissRef.current?.();
-				}
-			},
-		};
-		swipeHandlersRef.current = handlers;
-	}
-
-	const handleButtonClick = useCallback(
-		(e: React.MouseEvent) => {
-			e.preventDefault();
-			e.stopPropagation();
-			view.button?.onClick();
-		},
-		[view.button],
-	);
-
-	const handlePointerDown = useCallback(
-		(e: React.PointerEvent<HTMLButtonElement>) => {
-			if (exiting || !onDismiss) return;
-			const target = e.target as HTMLElement;
-			if (target.closest("[data-sileo-button]")) return;
-			pointerStartRef.current = e.clientY;
-			e.currentTarget.setPointerCapture(e.pointerId);
-			const el = buttonRef.current;
-			const h = swipeHandlersRef.current;
-			if (el && h) {
-				el.addEventListener("pointermove", h.onMove, { passive: true });
-				el.addEventListener("pointerup", h.onUp, { passive: true });
-			}
-		},
-		[exiting, onDismiss],
-	);
 
 	/* --------------------------------- Render --------------------------------- */
 
 	return (
-		<button
-			ref={buttonRef}
-			type="button"
+		<div
+			{...rootProps}
 			data-sileo-toast
 			data-ready={ready}
-			data-expanded={open}
 			data-exiting={exiting}
 			data-edge={expand}
 			data-position={position}
 			data-state={view.state}
-			className={className}
-			style={rootStyle}
+			style={{ ...rootProps.style, ...rootStyle }}
 			onMouseEnter={handleEnter}
 			onMouseLeave={handleLeave}
 			onTransitionEnd={handleTransitionEnd}
-			onPointerDown={handlePointerDown}
 		>
 			<div data-sileo-canvas data-edge={expand} style={canvasStyle}>
 				<svg data-sileo-svg width={WIDTH} height={svgHeight} viewBox={viewBox}>
@@ -618,18 +566,17 @@ export const Sileo = memo(function Sileo({
 						<div
 							data-sileo-badge
 							data-state={headerLayer.current.view.state}
-							className={headerLayer.current.view.styles?.badge}
 						>
 							{headerLayer.current.view.icon ??
 								STATE_ICON[headerLayer.current.view.state]}
 						</div>
-						<span
+						<Toast.Title
 							data-sileo-title
 							data-state={headerLayer.current.view.state}
-							className={headerLayer.current.view.styles?.title}
+							render={(props) => <span {...props} />}
 						>
 							{headerLayer.current.view.title}
-						</span>
+						</Toast.Title>
 					</div>
 					{headerLayer.prev && (
 						<div
@@ -641,7 +588,6 @@ export const Sileo = memo(function Sileo({
 							<div
 								data-sileo-badge
 								data-state={headerLayer.prev.view.state}
-								className={headerLayer.prev.view.styles?.badge}
 							>
 								{headerLayer.prev.view.icon ??
 									STATE_ICON[headerLayer.prev.view.state]}
@@ -649,7 +595,6 @@ export const Sileo = memo(function Sileo({
 							<span
 								data-sileo-title
 								data-state={headerLayer.prev.view.state}
-								className={headerLayer.prev.view.styles?.title}
 							>
 								{headerLayer.prev.view.title}
 							</span>
@@ -660,28 +605,21 @@ export const Sileo = memo(function Sileo({
 
 			{hasDesc && (
 				<div data-sileo-content data-edge={expand} data-visible={open}>
-					<div
+					<Toast.Description
 						ref={contentRef}
 						data-sileo-description
-						className={view.styles?.description}
+						render={(props) => <div {...props} />}
 					>
 						{view.description}
-						{view.button && (
-							// biome-ignore lint/a11y/useValidAnchor: cannot use button inside a button
-							<a
-								href="#"
-								type="button"
+						{view.actionProps && (
+							<Toast.Action
 								data-sileo-button
 								data-state={view.state}
-								className={view.styles?.button}
-								onClick={handleButtonClick}
-							>
-								{view.button.title}
-							</a>
+							/>
 						)}
-					</div>
+					</Toast.Description>
 				</div>
 			)}
-		</button>
+		</div>
 	);
 });

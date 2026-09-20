@@ -27,17 +27,21 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rm -rf dist && bunchee && cp src/styles.css dist/styles.css",
-		"dev": "bunchee --watch"
+		"build": "rm -rf dist && NODE_PATH=./node_modules bunchee && cp src/styles.css dist/styles.css",
+		"dev": "NODE_PATH=./node_modules bunchee --watch"
 	},
 	"peerDependencies": {
 		"react": ">=18",
 		"react-dom": ">=18"
 	},
 	"devDependencies": {
-		"bunchee": "^6.9.4"
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"bunchee": "^6.9.4",
+		"typescript": "5.8.3"
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.8.0",
 		"motion": "^12.34.0"
 	}
 }

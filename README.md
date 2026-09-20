@@ -14,16 +14,55 @@ npm i sileo
 ### Getting Started
 
 ```tsx
-import { sileo, Toaster } from "sileo";
+import { Toast, Toaster } from "sileo";
 
 export default function App() {
-  return (
-    <>
-      <Toaster position="top-right" />
-      <YourApp />
-    </>
-  );
+	return (
+			<Toast.Provider>
+				<Toaster />
+				<YourApp />
+			</Toast.Provider>
+		);
+	}
+```
+
+Create notifications with the Base UI toast manager:
+
+```tsx
+import { Toast } from "sileo";
+
+function SaveButton() {
+	const toastManager = Toast.useToastManager();
+
+	return (
+		<button
+			type="button"
+			onClick={() =>
+				toastManager.add({
+					title: "Saved",
+					description: "Your changes are up to date.",
+					type: "success",
+				})
+			}
+		>
+			Save
+		</button>
+	);
 }
+```
+
+`Toast.Provider` exposes Base UI's `timeout`, `limit`, global manager, update, close,
+promise, and swipe behavior. `Toaster` only supplies Sileo's visual renderer and
+animations.
+
+For custom Sileo visuals, pass `data` through the Base UI toast options:
+
+```tsx
+toastManager.add({
+	title: "Uploaded",
+	type: "success",
+	data: { fill: "#ffffff", roundness: 18 },
+});
 ```
 
 For detailed docs, click here: https://sileo.aaryan.design

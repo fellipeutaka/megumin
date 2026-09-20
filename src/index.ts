@@ -2,11 +2,6 @@
 
 import "./styles.css";
 
-export { sileo, Toaster } from "./toast";
-export type {
-	SileoButton,
-	SileoOptions,
-	SileoPosition,
-	SileoState,
-	SileoStyles,
-} from "./types";
+export { Toast } from "@base-ui/react/toast";
+export { Toaster, type ToasterProps } from "./toast";
+export type { SileoState, SileoToastData } from "./types";
