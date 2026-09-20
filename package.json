@@ -1,47 +1,17 @@
 {
-	"name": "sileo",
-	"version": "0.1.5",
-	"description": "An opinionated, physics based toast notification library for react.",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/hiaaryan/sileo.git"
-	},
-	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.mts",
-				"default": "./dist/index.mjs"
-			},
-			"require": {
-				"types": "./dist/index.d.ts",
-				"default": "./dist/index.js"
-			},
-			"default": "./dist/index.js"
-		},
-		"./styles.css": "./dist/styles.css"
-	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"files": [
-		"dist"
+	"name": "megumin",
+	"private": true,
+	"packageManager": "bun@1.4.2",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
 	],
 	"scripts": {
-		"build": "rm -rf dist && NODE_PATH=./node_modules bunchee && cp src/styles.css dist/styles.css",
-		"dev": "NODE_PATH=./node_modules bunchee --watch"
-	},
-	"peerDependencies": {
-		"react": ">=18",
-		"react-dom": ">=18"
+		"build": "turbo run build",
+		"dev": "turbo run dev --filter=@sileo/example",
+		"typecheck": "turbo run typecheck"
 	},
 	"devDependencies": {
-		"@types/react": "^19.3.0",
-		"@types/react-dom": "^19.3.0",
-		"bunchee": "^6.9.4",
-		"typescript": "5.8.3"
-	},
-	"dependencies": {
-		"@base-ui/react": "^1.8.0",
-		"motion": "^12.34.0"
+		"turbo": "^2.11.2"
 	}
 }

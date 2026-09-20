@@ -1,0 +1,103 @@
+import { CodePreview } from "@/components/code-preview";
+
+export const fireToastCode = `const manager = Toast.useToastManager();
+
+manager.add({ type: "success", title: "Changes saved" });
+
+manager.add({
+  type: "error",
+  title: "Something went wrong",
+  description: "Please try again later.",
+});
+
+manager.add({ type: "warning", title: "Storage almost full" });
+
+manager.add({ type: "info", title: "New update available" });`;
+
+export const actionCode = `manager.add({
+  type: "action",
+  title: "File uploaded",
+  description: "Share it with your team?",
+  actionProps: {
+    children: "Share",
+    onClick: () => console.log("Shared!"),
+  },
+});`;
+
+export const promiseCode = `manager.promise(fetchData(), {
+  loading: { title: "Loading..." },
+  success: { title: "Done!" },
+  error: { title: "Failed" },
+});`;
+
+# Getting Started
+
+Sileo is a tiny, opinionated toast component for React. It uses gooey SVG morphing and spring physics to create buttery smooth notifications — beautiful by default, no configuration required.
+
+## Installation
+
+```bash
+npm install sileo
+```
+
+## Quick Setup
+
+Add a Base UI `Toast.Provider` and the Sileo `Toaster` to your app's root layout.
+Use `Toast.useToastManager()` from a descendant component to create toasts.
+
+```tsx
+import { Toast, Toaster } from "sileo";
+
+export default function App() {
+  return (
+    <Toast.Provider>
+      <Toaster data-position="top-right" />
+      <YourApp />
+    </Toast.Provider>
+  );
+}
+```
+
+## Fire a Toast
+
+<CodePreview
+	actions={[
+		{ label: "Success", id: "success" },
+		{ label: "Error", id: "error" },
+		{ label: "Warning", id: "warning" },
+		{ label: "Info", id: "info" },
+	]}
+	code={fireToastCode}
+/>
+
+## Action Toast
+
+Toasts can include a button for user interaction.
+
+<CodePreview
+	actions={[{ label: "Try it", id: "action" }]}
+	code={actionCode}
+/>
+
+## Promise Toast
+
+Chain loading, success, and error states from a single promise.
+
+<CodePreview
+	actions={[{ label: "Try it", id: "promise" }]}
+	code={promiseCode}
+/>
+
+The promise method returns the original promise, so you can chain further.
+
+## Positions
+
+Set the viewport position with the Sileo `data-position` attribute. The viewport
+supports all six original Sileo positions, and the toast pill automatically
+aligns with the selected edge.
+
+```tsx
+<Toaster data-position="bottom-center" />
+```
+
+Available positions: `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`.

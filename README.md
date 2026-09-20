@@ -1,68 +1,29 @@
-<div align="center">
-  <h1>Sileo</h1>
-  <p>An opinionated, physics-based toast component for React.</p>
-  <p><a href="https://sileo.aaryan.design">Try Out</a> &nbsp; / &nbsp; <a href="https://sileo.aaryan.design/docs">Docs</a></p>
-  <video src="https://github.com/user-attachments/assets/a292d310-9189-490a-9f9d-d0a1d09defce"></video>
-</div>
+# Megumin
 
-### Installation
+This repository contains the `sileo` toast package and a small browser example
+for testing its UI and animations.
+
+## Workspaces
+
+- `packages/sileo` — the publishable Sileo package.
+- `apps/example` — the original Sileo Next.js site, adapted to exercise the Base UI-powered toast API.
+
+## Development
 
 ```bash
-npm i sileo
+bun install
+bun run dev
 ```
 
-### Getting Started
+The example is served at [http://localhost:3000](http://localhost:3000). It includes
+the original light/dark palette, interactive demos, and documentation pages.
 
-```tsx
-import { Toast, Toaster } from "sileo";
+Use these commands for production checks:
 
-export default function App() {
-	return (
-			<Toast.Provider>
-				<Toaster />
-				<YourApp />
-			</Toast.Provider>
-		);
-	}
+```bash
+bun run typecheck
+bun run build
 ```
 
-Create notifications with the Base UI toast manager:
-
-```tsx
-import { Toast } from "sileo";
-
-function SaveButton() {
-	const toastManager = Toast.useToastManager();
-
-	return (
-		<button
-			type="button"
-			onClick={() =>
-				toastManager.add({
-					title: "Saved",
-					description: "Your changes are up to date.",
-					type: "success",
-				})
-			}
-		>
-			Save
-		</button>
-	);
-}
-```
-
-`Toast.Provider` exposes Base UI's `timeout`, `limit`, global manager, update, close,
-promise, and swipe behavior. `Toaster` only supplies Sileo's visual renderer and
-animations.
-
-For custom Sileo visuals, pass `data` through the Base UI toast options:
-
-```tsx
-toastManager.add({
-	title: "Uploaded",
-	type: "success",
-	data: { fill: "#ffffff", roundness: 18 },
-});
-```
-
-For detailed docs, click here: https://sileo.aaryan.design
+See [`packages/sileo/README.md`](./packages/sileo/README.md) for the library
+API and usage details.

@@ -1,0 +1,52 @@
+import { Table } from "@/components/table";
+
+# Toaster
+
+`Toaster` is Sileo's animated viewport. Add it inside a Base UI provider once in
+your layout; the provider owns the toast store and lifecycle.
+
+```tsx
+import { Toast, Toaster } from "sileo";
+
+export function RootLayout({ children }) {
+  return (
+    <Toast.Provider timeout={6000} limit={5}>
+      <Toaster data-position="top-right" />
+      {children}
+    </Toast.Provider>
+  );
+}
+```
+
+<Table
+	headers={["Prop", "Type", "Description"]}
+	rows={[
+		["data-position", "SileoPosition", "Sileo viewport position; defaults to top-center"],
+		["data-theme", "string", "Selects the original Sileo light or dark toast fill"],
+		["className", "string", "Additional viewport classes"],
+		["style", "CSSProperties", "Viewport inline styles"],
+	]}
+/>
+
+## Provider options
+
+Use Base UI's `Toast.Provider` for global lifecycle defaults.
+
+<Table
+	headers={["Prop", "Type", "Description"]}
+	rows={[
+		["timeout", "number", "Default auto-dismiss delay in milliseconds"],
+		["limit", "number", "Maximum number of active toasts"],
+		["toastManager", "ToastManager", "Optional externally controlled manager"],
+	]}
+/>
+
+```tsx
+<Toast.Provider timeout={6000} limit={5}>
+  <Toaster data-position="top-center" />
+  <App />
+</Toast.Provider>
+```
+
+The supported Sileo positions are `top-left`, `top-center`, `top-right`,
+`bottom-left`, `bottom-center`, and `bottom-right`.

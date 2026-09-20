@@ -70,6 +70,8 @@ type SileoRootProps = Record<string, any>;
 interface SileoProps {
 	toast: ToastRootToastObject<SileoToastData>;
 	rootProps: SileoRootProps;
+	position?: "left" | "center" | "right";
+	expand?: "top" | "bottom";
 	canExpand?: boolean;
 	onMouseEnter?: MouseEventHandler<HTMLDivElement>;
 	onMouseLeave?: MouseEventHandler<HTMLDivElement>;
@@ -122,6 +124,8 @@ const GooeyDefs = memo(function GooeyDefs({
 export const Sileo = memo(function Sileo({
 	toast,
 	rootProps,
+	position = "right",
+	expand = "bottom",
 	canExpand,
 	onMouseEnter,
 	onMouseLeave,
@@ -131,10 +135,8 @@ export const Sileo = memo(function Sileo({
 	const title = toast.title ?? state;
 	const description = toast.description;
 	const actionProps = toast.actionProps;
-	const fill = data.fill ?? "#FFFFFF";
+	const fill = data.fill ?? "var(--sileo-default-fill, #FFFFFF)";
 	const roundness = data.roundness;
-	const position = "right" as const;
-	const expand = "bottom" as const;
 	const exiting = toast.transitionStatus === "ending";
 	const refreshKey = toast.updateKey;
 	const duration = toast.timeout ?? DEFAULT_TOAST_DURATION;
@@ -613,6 +615,7 @@ export const Sileo = memo(function Sileo({
 						{view.description}
 						{view.actionProps && (
 							<Toast.Action
+								{...view.actionProps}
 								data-sileo-button
 								data-state={view.state}
 							/>

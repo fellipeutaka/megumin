@@ -8,6 +8,14 @@ export type SileoState =
 	| "info"
 	| "action";
 
+export type SileoPosition =
+	| "top-left"
+	| "top-center"
+	| "top-right"
+	| "bottom-left"
+	| "bottom-center"
+	| "bottom-right";
+
 export interface SileoToastData {
 	icon?: ReactNode | null;
 	fill?: string;

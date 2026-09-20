@@ -40,6 +40,7 @@
 	--sileo-duration: 600ms;
 	--sileo-height: 40px;
 	--sileo-width: 350px;
+	--sileo-default-fill: #ffffff;
 
 	--sileo-state-success: oklch(0.723 0.219 142.136);
 	--sileo-state-loading: oklch(0.556 0 0);
@@ -337,6 +338,23 @@
 	line-height: 1.25rem;
 	contain: layout style paint;
 	content-visibility: auto;
+}
+
+/* Match the original Sileo theme fills while keeping the viewport API headless. */
+[data-sileo-viewport][data-theme="light"] {
+	--sileo-default-fill: #1a1a1a;
+}
+
+[data-sileo-viewport][data-theme="dark"] {
+	--sileo-default-fill: #f2f2f2;
+}
+
+[data-sileo-viewport][data-theme="dark"] [data-sileo-description] {
+	color: rgb(0 0 0 / 50%);
+}
+
+[data-sileo-viewport][data-theme="light"] [data-sileo-description] {
+	color: rgb(255 255 255 / 50%);
 }
 
 /* --------------------------------- Button --------------------------------- */

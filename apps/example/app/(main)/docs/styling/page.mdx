@@ -1,0 +1,241 @@
+import { CodePreview } from "@/components/code-preview";
+import { Table } from "@/components/table";
+
+export const fillCode = `const manager = Toast.useToastManager();
+
+manager.add({
+  type: "success",
+  title: "Saved",
+  data: { fill: "#171717" },
+});
+
+manager.add({
+  type: "success",
+  title: "Booking confirmed",
+  data: { fill: "black" },
+});`;
+
+export const styleOverrideCode = `manager.add({
+  type: "action",
+  title: "New Sale",
+  data: { fill: "black" },
+  actionProps: { children: "View sale" },
+});`;
+
+export const customIconCode = `import { Rocket } from "lucide-react";
+
+manager.add({
+  type: "success",
+  title: "Deployed",
+  data: { icon: <Rocket className="size-3.5" /> },
+});`;
+
+export const customDescCode = `manager.add({
+  type: "success",
+  title: "Payment received",
+  description: (
+    <span className="text-green-500/50! font-medium!">
+      We received your payment of $49.00.
+    </span>
+  ),
+});`;
+
+export const richDescCode = `manager.add({
+  type: "info",
+  title: "Team update",
+  description: (
+    <div className="flex flex-col gap-2">
+      <div className="flex -space-x-2">
+        <img src="/memojis/Rectangle.png" className="size-7 rounded-full ring-2 ring-white" />
+        <img src="/memojis/Rectangle-1.png" className="size-7 rounded-full ring-2 ring-white" />
+        <img src="/memojis/Rectangle-2.png" className="size-7 rounded-full ring-2 ring-white" />
+      </div>
+      <span className="text-xs! text-muted-foreground!">
+        3 new members joined the project.
+      </span>
+    </div>
+  ),
+});`;
+
+export const roundnessCode = `manager.add({
+  type: "success",
+  title: "Sharp corners",
+  data: { roundness: 12 },
+});
+
+manager.add({
+  type: "success",
+  title: "Fully round",
+  data: { roundness: 16 },
+});`;
+
+export const autopilotCode = `// Lifecycle is managed by Base UI Toast.Provider.
+<Toast.Provider timeout={6000} limit={5}>
+  <Toaster data-position="top-right" />
+  <App />
+</Toast.Provider>`;
+
+export const dismissCode = `const id = manager.add({
+  type: "success",
+  title: "Dismissable",
+});
+
+// Dismiss a single toast
+manager.close(id);
+
+// Clear all toasts
+manager.close();`;
+
+export const darkThemeCode = `// Keep the original Sileo dark toast fill.
+<Toaster data-theme="dark" data-position="top-right" />`;
+
+# Styling
+
+Sileo keeps its original gooey SVG and spring animations. The Base UI data model
+is used for lifecycle, while `data` carries the small set of Sileo visual
+customizations.
+
+## Fill Color
+
+Set `data.fill` to change the SVG background. The original Sileo defaults are
+`#1a1a1a` for the light theme and `#f2f2f2` for the dark theme.
+
+<CodePreview
+	actions={[
+		{ label: "Dark accent", id: "fill-accent" },
+		{ label: "Full dark", id: "fill-dark" },
+	]}
+	code={fillCode}
+/>
+
+## Custom Actions and CSS
+
+Actions use Base UI's `actionProps` and can be styled with the stable Sileo data
+attributes emitted by the visual layer.
+
+<CodePreview
+	actions={[{ label: "Try it", id: "style-override" }]}
+	code={styleOverrideCode}
+/>
+
+<Table
+	headers={["Element", "Selector"]}
+	rows={[
+		["Toast root", "[data-sileo-toast]"],
+		["Title", "[data-sileo-title]"],
+		["Description", "[data-sileo-description]"],
+		["Badge", "[data-sileo-badge]"],
+		["Action button", "[data-sileo-button]"],
+	]}
+/>
+
+## Custom Icons
+
+Pass any React node as `data.icon` to replace the default state icon.
+
+<CodePreview
+	actions={[{ label: "Try it", id: "custom-icon" }]}
+	code={customIconCode}
+/>
+
+## Custom Description
+
+The `description` option accepts JSX, so you can build rich toast content.
+
+<CodePreview
+	actions={[{ label: "Try it", id: "custom-description" }]}
+	code={customDescCode}
+/>
+
+You can use any layout — stack multiple elements, add icons, or use your own components.
+
+<CodePreview
+	actions={[{ label: "Rich content", id: "rich-description" }]}
+	code={richDescCode}
+/>
+
+## Roundness
+
+Set `data.roundness` to tune the SVG blur radius and the pill's corners.
+
+<CodePreview
+	actions={[
+		{ label: "Sharp (12)", id: "roundness-sharp" },
+		{ label: "Round (16)", id: "roundness-round" },
+	]}
+	code={roundnessCode}
+/>
+
+> **Performance note:** Higher `roundness` values increase the SVG blur radius used for the gooey morph effect, which is more expensive to render. The recommended value is `16` for a good balance between aesthetics and performance.
+
+## Lifecycle
+
+Base UI owns timeout, expansion, and dismissal state. Configure global timeout and
+limits on `Toast.Provider`; the Sileo viewport keeps its original hover and
+spring expansion animations.
+
+<CodePreview
+	actions={[
+		{ label: "Provider setup", id: "autopilot-off" },
+		{ label: "Provider timing", id: "autopilot-custom" },
+	]}
+	code={autopilotCode}
+/>
+
+## Dismissing Toasts
+
+Use `manager.close(id)` to remove a specific toast, or `manager.close()` to remove
+all toasts from the provider.
+
+<CodePreview
+	actions={[
+		{ label: "Fire toast", id: "dismiss-fire" },
+		{ label: "Dismiss it", id: "dismiss-one" },
+		{ label: "Clear all", id: "dismiss-all" },
+	]}
+	code={dismissCode}
+/>
+
+## Global Defaults
+
+Use Base UI's provider for shared lifecycle defaults and `Toaster` data attributes
+for the Sileo viewport.
+
+```tsx
+<Toast.Provider timeout={6000} limit={5}>
+  <Toaster data-position="top-right" data-theme="dark" />
+  <App />
+</Toast.Provider>
+```
+
+## CSS Variables
+
+Sileo exposes CSS custom properties you can override globally to change state
+colors, dimensions, or animation timing.
+
+```css
+:root {
+  /* State colors (oklch) */
+  --sileo-state-success: oklch(0.723 0.219 142.136);
+  --sileo-state-loading: oklch(0.556 0 0);
+  --sileo-state-error: oklch(0.637 0.237 25.331);
+  --sileo-state-warning: oklch(0.795 0.184 86.047);
+  --sileo-state-info: oklch(0.685 0.169 237.323);
+  --sileo-state-action: oklch(0.623 0.214 259.815);
+
+  /* Dimensions */
+  --sileo-width: 350px;
+  --sileo-height: 40px;
+
+  /* Animation */
+  --sileo-duration: 600ms;
+}
+```
+
+For example, to make all success toasts use a custom brand color:
+
+```css
+:root {
+  --sileo-state-success: oklch(0.7 0.2 200);
+}
+```

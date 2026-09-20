@@ -1,0 +1,100 @@
+import { Table } from "@/components/table";
+
+# API
+
+Sileo keeps the visual layer and animation model from the original project while
+delegating toast state and lifecycle to Base UI Toast.
+
+```tsx
+import { Toast } from "sileo";
+
+const manager = Toast.useToastManager();
+```
+
+## Toast manager
+
+<Table
+	headers={["Method", "Description"]}
+	rows={[
+		["manager.add(options)", "Add a toast and return its id"],
+		["manager.update(id, options)", "Update an existing toast"],
+		["manager.promise(promise, options)", "Loading → success/error flow"],
+		["manager.close(id?)", "Close one toast, or all toasts when id is omitted"],
+	]}
+/>
+
+All toast manager methods are scoped to the nearest `Toast.Provider`. The manager
+is returned by Base UI and can be used from any descendant component.
+
+## Toast options
+
+<Table
+	headers={["Prop", "Type", "Description"]}
+	rows={[
+		["title", "ReactNode", "Toast heading"],
+		["description", "ReactNode", "Expandable body content, including JSX"],
+		["type", "string", "Visual state: success, loading, error, warning, info, or action"],
+		["timeout", "number", "Override the provider timeout for this toast"],
+		["actionProps", "Button props", "Action button rendered inside the description"],
+		["data", "SileoToastData", "Sileo visual customizations"],
+	]}
+/>
+
+```tsx
+manager.add({
+  type: "action",
+  title: "File uploaded",
+  description: "Share it with your team?",
+  actionProps: {
+    children: "Share",
+    onClick: () => console.log("Shared!"),
+  },
+  data: {
+    roundness: 16,
+  },
+});
+```
+
+### Sileo data
+
+The `data` field is the Base UI escape hatch for the Sileo-specific visual
+details. It is intentionally separate from the toast lifecycle API.
+
+```tsx
+interface SileoToastData {
+  icon?: ReactNode | null;
+  fill?: string;
+  roundness?: number;
+}
+```
+
+```tsx
+manager.add({
+  type: "success",
+  title: "Custom fill",
+  data: {
+    fill: "#171717",
+    icon: <Rocket className="size-3.5" />,
+  },
+});
+```
+
+## Promise toasts
+
+Pass Base UI's promise options to transition one toast through loading and its
+resolved or rejected state.
+
+```tsx
+manager.promise(createUser(data), {
+  loading: { type: "loading", title: "Creating account..." },
+  success: (user) => ({
+    type: "success",
+    title: `Welcome, ${user.name}!`,
+  }),
+  error: (err) => ({
+    type: "error",
+    title: "Signup failed",
+    description: err.message,
+  }),
+});
+```
